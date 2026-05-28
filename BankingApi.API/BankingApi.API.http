@@ -1,0 +1,36 @@
+@BankingApi.API_HostAddress = http://localhost:5080
+
+GET {{BankingApi.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET {{BankingApi.API_HostAddress}}/customers
+Accept: application/json
+
+###
+
+POST {{BankingApi.API_HostAddress}}/customers
+Content-Type: application/json
+
+{
+  "firstName": "Alice",
+  "lastName": "Smith",
+  "email": "alice@example.com"
+}
+
+###
+
+GET {{BankingApi.API_HostAddress}}/accounts
+Accept: application/json
+
+###
+
+POST {{BankingApi.API_HostAddress}}/accounts
+Content-Type: application/json
+
+{
+  "accountNumber": "ACC123456",
+  "balance": 1000.00,
+  "customerId": 1
+}
