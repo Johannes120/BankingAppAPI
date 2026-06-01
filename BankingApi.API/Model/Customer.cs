@@ -1,3 +1,13 @@
+/// <summary>
+/// Customer Domain Model with Validation and Relationships
+/// feat: add Customer domain model with validation and relationships
+/// 
+/// - Define Customer entity with Id, FirstName, LastName, and Email properties
+/// - Implement email validation and string length constraints
+/// - Establish one-to-many relationship with Account entity
+/// - Add JsonIgnore attribute to prevent circular reference serialization
+/// </summary>
+
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
