@@ -15,8 +15,7 @@ A banking application with a .NET 10 Minimal API backend.
 - .NET 10
 - ASP.NET Core minimal APIs
 - Entity Framework Core
-- SQLite
-- Angular
+- SQLServer
 - Swagger / OpenAPI
 
 ## Project structure
