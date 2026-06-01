@@ -1,3 +1,12 @@
+/// <summary>
+/// Account Domain Model with Validation Constraints
+/// feat: add Account domain model with validation constraints
+/// 
+/// - Define Account entity with Id, AccountNumber, Balance, and CustomerId properties
+/// - Implement data annotations for validation (required fields, string length, range)
+/// - Establish relationship with Customer entity for account-customer association
+/// </summary>
+
 using System.ComponentModel.DataAnnotations;
 
 namespace BankingApi.API.Models;
