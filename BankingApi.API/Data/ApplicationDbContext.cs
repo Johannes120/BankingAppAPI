@@ -1,3 +1,12 @@
+/// <summary>
+/// ApplicationDbContext - Database Context Configuration
+/// feat: add Entity Framework Core database context configuration
+/// 
+/// - Establish ApplicationDbContext for managing Customer and Account entities
+/// - Configure DbSet properties for Customers and Accounts collections
+/// - Enable database abstraction layer for data access operations
+/// </summary>
+
 using Microsoft.EntityFrameworkCore;
 using BankingApi.API.Models;
 
