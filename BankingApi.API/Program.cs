@@ -1,3 +1,15 @@
+/// <summary>
+/// Application Startup Configuration and Dependency Injection
+/// feat: configure dependency injection and application startup
+/// 
+/// - Register OpenAPI and Swagger documentation services
+/// - Configure SQLite database with ApplicationDbContext
+/// - Register AccountService as scoped dependency
+/// - Enable JSON serialization with circular reference handling
+/// - Implement database auto-migration on application startup
+/// - Configure API endpoints and middleware pipeline
+/// </summary>
+
 using BankingApi.API.Data;
 using BankingApi.API.Interfaces;
 using BankingApi.API.Models;
@@ -12,8 +24,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("BankingAppDb"));
+    options.UseSqlite(connectionString));
 
 builder.Services.AddScoped<IAccountService, AccountService>();
 
@@ -23,6 +36,13 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 var app = builder.Build();
+
+// Auto-create and update database
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.EnsureCreated();
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -73,6 +93,34 @@ app.MapPost("/accounts", async (Account account, IAccountService service) =>
     }
 });
 
+app.MapPut("/accounts/{id}", async (int id, Account account, IAccountService service) =>
+{
+    var validationResult = ValidateModel(account);
+    if (validationResult is not null)
+    {
+        return validationResult;
+    }
+
+    try
+    {
+        var updatedAccount = await service.UpdateAccountAsync(id, account);
+        return updatedAccount is not null ? Results.Ok(updatedAccount) : Results.NotFound();
+    }
+    catch (InvalidOperationException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+})
+    .WithName("UpdateAccount");
+
+app.MapDelete("/accounts/{id}", async (int id, IAccountService service) =>
+{
+    var deleted = await service.DeleteAccountAsync(id);
+    return deleted ? Results.NoContent() : Results.NotFound();
+})
+    .WithName("DeleteAccount");
+
+
 app.MapGet("/customers", async (ApplicationDbContext context) =>
     await context.Customers.ToListAsync())
     .WithName("GetCustomers");
@@ -90,6 +138,45 @@ app.MapPost("/customers", async (Customer customer, ApplicationDbContext context
     return Results.Created($"/customers/{customer.Id}", customer);
 })
     .WithName("CreateCustomer");
+
+app.MapPut("/customers/{id}", async (int id, Customer customer, ApplicationDbContext context) =>
+{
+    var validationResult = ValidateModel(customer);
+    if (validationResult is not null)
+    {
+        return validationResult;
+    }
+
+    var existingCustomer = await context.Customers.FindAsync(id);
+    if (existingCustomer is null)
+    {
+        return Results.NotFound();
+    }
+
+    existingCustomer.FirstName = customer.FirstName;
+    existingCustomer.LastName = customer.LastName;
+    existingCustomer.Email = customer.Email;
+
+    context.Customers.Update(existingCustomer);
+    await context.SaveChangesAsync();
+    return Results.Ok(existingCustomer);
+})
+    .WithName("UpdateCustomer");
+
+app.MapDelete("/customers/{id}", async (int id, ApplicationDbContext context) =>
+{
+    var customer = await context.Customers.FindAsync(id);
+    if (customer is null)
+    {
+        return Results.NotFound();
+    }
+
+    context.Customers.Remove(customer);
+    await context.SaveChangesAsync();
+    return Results.NoContent();
+})
+    .WithName("DeleteCustomer");
+
 
 static IResult? ValidateModel(object model)
 {
